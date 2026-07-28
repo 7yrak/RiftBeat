@@ -11,3 +11,15 @@ RiftBeat.
 
 Los APK temporales o de pruebas no deben copiarse aquí. Cada reemplazo del APK
 estable debe actualizar también su checksum, la versión y la bitácora.
+
+## Instalar en un dispositivo conectado
+
+Con depuración USB habilitada:
+
+```powershell
+adb install -r release/RiftBeat-latest.apk
+```
+
+También puedes copiar `RiftBeat-latest.apk` al teléfono y abrirlo desde el
+administrador de archivos, autorizando temporalmente la instalación desde esa
+fuente.

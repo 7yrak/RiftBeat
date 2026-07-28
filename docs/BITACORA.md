@@ -253,3 +253,53 @@ Android antes de diseñar contenido adicional.
   archivo de versión en la carpeta local de plantillas.
 - La prueba headless ampliada terminó sin errores ni objetos filtrados.
 - Ya no existen bloqueos técnicos conocidos para intentar la exportación.
+
+### Cierre de versión - 2026-07-27 22:59 America/Santiago
+
+#### Trabajo completado
+
+- Se corrigió la exportación eliminando opciones de SDK que requerían Gradle y
+  habilitando compresión ETC2/ASTC.
+- Se instalaron Build Tools 36.0.0 y Platform 36 para coincidir con el Target SDK
+  de la plantilla.
+- Se excluyeron pruebas, herramientas y documentación del paquete final.
+- Se agregaron capas de icono principal, adaptativa y monocroma para Android.
+- Se generó `release/RiftBeat-latest.apk` desde el commit fuente
+  `0904ca01b0736c042b75d1693158c47abc4dc5d1`.
+- Se generó el checksum y el registro `release/VERSION.md`.
+
+#### Validación final
+
+- Prueba headless: aprobada sin fugas.
+- Exportación Android: aprobada.
+- Paquete: `com.sevenyrak.riftbeat`.
+- Versión: `0.1.0` (`versionCode` 1).
+- Arquitectura: `arm64-v8a`.
+- Minimum SDK: 24.
+- Target SDK: 36.
+- Firma APK v2 y v3: aprobada.
+- Alineación ZIP: aprobada.
+- Contenido del paquete: aprobado; no incluye tests, tools ni docs.
+- Tamaño: 28.558.755 bytes.
+- SHA-256:
+  `16f61dec93f81a989e571038ae4b56923590f33bd584b7d1ae0728d088a4432a`.
+- Dispositivo ADB: no disponible; la instalación física queda pendiente.
+
+#### Errores y soluciones
+
+- La primera exportación rechazó `gradle_build/min_sdk` y
+  `gradle_build/target_sdk` porque el preset no usa Gradle; se eliminaron.
+- Android exigió ETC2/ASTC; se habilitó
+  `textures/vram_compression/import_etc2_astc`.
+- Build Tools 35.0.1 no coincidía con Target SDK 36; se instaló 36.0.0.
+- `aapt2` mantiene una advertencia no bloqueante del icono temático opcional del
+  template Godot 4.7.1. Firma, alineación e iconos exportados son válidos.
+
+#### Commit asociado
+
+`chore: publish Android MVP 0.1.0`
+
+#### Próximo paso
+
+Instalar el APK en un teléfono Android ARM64, jugar tres partidas completas y
+registrar feedback de dificultad, controles táctiles, audio y rendimiento.
