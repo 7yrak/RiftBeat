@@ -363,3 +363,33 @@ arcades de cubo y corregir el juego para Android horizontal.
 
 Crear el commit fuente de `0.1.1`, exportar el APK desde ese commit y repetir las
 verificaciones de firma, alineación, metadatos, arquitectura y checksum.
+
+### Cierre de versión - 2026-07-27 23:11 America/Santiago
+
+#### Artefacto generado
+
+- APK: `release/RiftBeat-latest.apk`.
+- Versión: `0.1.1` (`versionCode` 2).
+- Commit fuente: `4751e9a88f35dcf176419b0880caca792d2e083e`.
+- Paquete: `com.sevenyrak.riftbeat`.
+- Arquitectura: `arm64-v8a`.
+- Tamaño: 28.562.851 bytes.
+- SHA-256:
+  `f20f051abb084cfcf7d7fbc7113e2f6f24b37fd31cc60560a2ba928d3141d283`.
+
+#### Validación final
+
+- Exportación Android: aprobada.
+- Firma APK v2 y v3: aprobada.
+- Alineación ZIP: aprobada.
+- Minimum SDK 24 y Target SDK 36: aprobados.
+- Manifiesto Android con orientación horizontal: aprobado.
+- Única biblioteca nativa `arm64-v8a`: aprobada.
+- Tests, herramientas y documentos excluidos del APK: aprobado.
+- Checksum reproducido desde el archivo final: aprobado.
+- Dispositivo ADB: no disponible; la instalación física queda pendiente.
+
+#### Próximo paso
+
+Instalar la versión `0.1.1` en un teléfono ARM64, verificar ambas orientaciones
+apaisadas y jugar tres partidas para calibrar el Rift Roll.

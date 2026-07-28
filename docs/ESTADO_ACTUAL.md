@@ -1,6 +1,6 @@
 # Estado actual de RiftBeat
 
-Actualizado: 2026-07-27 23:09 America/Santiago
+Actualizado: 2026-07-27 23:11 America/Santiago
 
 ## Objetivo general
 
@@ -10,18 +10,17 @@ obstáculos sincronizados a 120 BPM.
 
 ## Situación vigente
 
-- Hito actual: jugabilidad Android `0.1.1` implementada; APK pendiente de
-  regeneración.
-- Progreso aproximado del MVP: 96 %; falta exportación y validación física.
+- Hito actual: versión Android `0.1.1` disponible para pruebas.
+- Progreso aproximado del MVP: 97 %; falta validación física y calibración.
 - Última funcionalidad terminada: salto característico **Rift Roll**, con cinco
   cuartos de giro, dirección por dimensión, estela, squash y onda de aterrizaje.
-- Funcionalidad en desarrollo: publicación del APK Android `0.1.1`.
-- Estado de compilación: la fuente pasa las pruebas; el APK estable todavía
-  corresponde a `0.1.0` hasta completar la nueva exportación.
-- Estado de las pruebas: automatización y QA visual de `0.1.1` aprobados; firma,
-  alineación y paquete deben repetirse tras exportar.
-- Último commit válido: `chore: publish Android MVP 0.1.0`.
-- Commit fuente del APK vigente: `0904ca01b0736c042b75d1693158c47abc4dc5d1`.
+- Funcionalidad en desarrollo: ninguna; el siguiente paso es prueba física.
+- Estado de compilación: APK `0.1.1` generado y validado en
+  `release/RiftBeat-latest.apk`.
+- Estado de las pruebas: automatización, QA visual, orientación, firma,
+  alineación, metadatos, paquete y checksum aprobados; prueba física pendiente.
+- Último commit fuente validado: `feat: add signature Rift Roll jump`.
+- Commit fuente del APK vigente: `4751e9a88f35dcf176419b0880caca792d2e083e`.
 - Rama actual: `main`.
 
 ## Entorno comprobado
@@ -53,9 +52,9 @@ obstáculos sincronizados a 120 BPM.
 
 ## Próxima tarea exacta
 
-Regenerar y validar `release/RiftBeat-latest.apk` como versión `0.1.1`; después
-instalarlo en un teléfono ARM64, rotar el dispositivo en ambos sentidos
-horizontales y completar al menos tres partidas.
+Instalar `release/RiftBeat-latest.apk` en un teléfono ARM64, rotar el dispositivo
+en ambos sentidos horizontales y completar al menos tres partidas, registrando
+sensación del Rift Roll, respuesta táctil, audio y rendimiento.
 
 ## Comandos recomendados para continuar
 
