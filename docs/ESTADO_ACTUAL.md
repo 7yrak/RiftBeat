@@ -1,6 +1,6 @@
 # Estado actual de RiftBeat
 
-Actualizado: 2026-07-27 22:24 America/Santiago
+Actualizado: 2026-07-27 22:27 America/Santiago
 
 ## Objetivo general
 
@@ -18,7 +18,8 @@ ser confirmados antes de fijar el alcance del MVP.
 - Estado de compilación: no disponible; todavía no existe `project.godot`.
 - Estado de las pruebas: comprobaciones de repositorio aprobadas; pruebas del
   juego no aplican todavía.
-- Último commit válido: `chore: initialize RiftBeat project`.
+- Último commit válido: `docs: update project log` (cierre documental de la
+  sesión 001).
 - Rama actual: `main`.
 
 ## Entorno comprobado

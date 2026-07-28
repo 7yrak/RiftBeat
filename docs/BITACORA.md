@@ -112,3 +112,16 @@ java -version
 
 Definir el MVP y la versión objetivo de Godot; después crear un proyecto mínimo
 que pueda importarse y arrancar en modo headless.
+
+### Cierre verificado - 2026-07-27 22:27 America/Santiago
+
+- El commit `70993c5cfe18b0034858fba7f03c50fc12a56529` se publicó en
+  `origin/main`.
+- `git ls-remote`, la referencia `origin/main` y la API de GitHub devolvieron el
+  mismo hash.
+- GitHub confirmó `main` como rama predeterminada y mantuvo la visibilidad
+  pública del repositorio.
+- Se refinó `.gitignore` para permitir el Gradle Wrapper y un eventual
+  `android/build` personalizado de Godot, sin dejar de excluir salidas Gradle.
+- El cierre documental se asocia al commit `docs: update project log`.
+- No quedaron cambios locales desconocidos ni secretos detectados.
