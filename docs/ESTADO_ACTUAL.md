@@ -1,6 +1,6 @@
 # Estado actual de RiftBeat
 
-Actualizado: 2026-07-27 23:38 America/Santiago
+Actualizado: 2026-07-27 23:42 America/Santiago
 
 ## Objetivo general
 
@@ -10,19 +10,19 @@ obstáculos sincronizados a 120 BPM.
 
 ## Situación vigente
 
-- Hito actual: sistema modular y prototipos de `0.2.0` implementados; APK
-  pendiente de regeneración.
-- Progreso aproximado del MVP ampliado: 82 %; el alcance creció para incluir
-  poderes y familias de obstáculos.
+- Hito actual: versión Android `0.2.0` con sistema modular disponible para
+  pruebas.
+- Progreso aproximado del MVP ampliado: 84 %; falta validación física de los
+  prototipos antes de crear etapas.
 - Última funcionalidad terminada: catálogo modular de 12 piezas y prototipos de
   prensa rítmica, gravedad ligera y bloque destructible con Rift Pulse.
-- Funcionalidad en desarrollo: publicación del APK Android `0.2.0`.
-- Estado de compilación: la fuente pasa pruebas funcionales y QA visual; el APK
-  estable todavía corresponde a `0.1.1`.
-- Estado de las pruebas: catálogo, combinación de propiedades, prensa, gravedad,
-  destrucción, cargas, juego previo y capturas aprobados; exportación pendiente.
-- Último commit fuente validado: `feat: add signature Rift Roll jump`.
-- Commit fuente del APK vigente: `4751e9a88f35dcf176419b0880caca792d2e083e`.
+- Funcionalidad en desarrollo: ninguna; el siguiente paso es prueba física.
+- Estado de compilación: APK `0.2.0` generado y validado en
+  `release/RiftBeat-latest.apk`.
+- Estado de las pruebas: catálogo, combinaciones, prototipos, regresiones, QA
+  visual, exportación, firma, alineación, metadatos y checksum aprobados.
+- Último commit fuente validado: `chore: track obstacle resource UIDs`.
+- Commit fuente del APK vigente: `b05e82053143ef28cd4a81b1429a7766bcbf27c1`.
 - Rama actual: `main`.
 
 ## Entorno comprobado
@@ -54,9 +54,9 @@ obstáculos sincronizados a 120 BPM.
 
 ## Próxima tarea exacta
 
-Generar y validar `release/RiftBeat-latest.apk` como versión `0.2.0`. Después,
-probar tres partidas en Android y responder las cinco preguntas definidas en
-`docs/OBSTACULOS.md` antes de crear más etapas.
+Instalar `release/RiftBeat-latest.apk`, probar tres partidas en Android y
+responder las cinco preguntas de `docs/OBSTACULOS.md`. No crear más etapas antes
+de registrar ese resultado.
 
 ## Comandos recomendados para continuar
 

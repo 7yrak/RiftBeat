@@ -508,3 +508,40 @@ godot_console --path . --script res://tests/capture_preview.gd
 
 Crear el commit fuente de `0.2.0`, exportar el APK desde ese commit y repetir
 firma, alineación, metadatos, arquitectura y checksum.
+
+### Cierre de versión - 2026-07-27 23:42 America/Santiago
+
+#### Artefacto generado
+
+- APK: `release/RiftBeat-latest.apk`.
+- Versión: `0.2.0` (`versionCode` 3).
+- Commit fuente: `b05e82053143ef28cd4a81b1429a7766bcbf27c1`.
+- Paquete: `com.sevenyrak.riftbeat`.
+- Arquitectura: `arm64-v8a`.
+- Tamaño: 28.579.609 bytes.
+- SHA-256:
+  `d26a75967a39f04fcc92aa426b11f30d0ccc66d0f947f3497ae784ce3fa409b6`.
+
+#### Validación final
+
+- Prueba del sistema modular: aprobada.
+- Prueba funcional completa: aprobada.
+- Exportación Android: aprobada.
+- Firma APK v2 y v3: aprobada.
+- Alineación ZIP: aprobada.
+- Versión 0.2.0, Minimum SDK 24 y Target SDK 36: aprobados.
+- Orientación horizontal y arquitectura ARM64: aprobadas.
+- Tests, herramientas y documentos excluidos del APK: aprobado.
+- Checksum reproducido desde el archivo final: aprobado.
+- Dispositivo ADB: no disponible durante la exportación.
+
+#### Ajuste de reproducibilidad
+
+La primera exportación creó los `.gd.uid` de los nuevos scripts. Se versionaron
+en `chore: track obstacle resource UIDs` y se repitió toda la exportación desde
+ese nuevo commit fuente.
+
+#### Próximo paso
+
+Probar tres partidas de `0.2.0`, responder el cuestionario de
+`docs/OBSTACULOS.md` y usar ese resultado para elegir las primeras combinaciones.
