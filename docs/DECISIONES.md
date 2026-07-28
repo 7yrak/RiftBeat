@@ -118,3 +118,27 @@ nuevo ADR.
   pulsos sintetizados; deberá evolucionar si el prototipo valida su jugabilidad.
 - Reversibilidad: alta; pueden añadirse recursos y sistemas separados sin romper
   el bucle principal.
+
+## ADR-007 - Identidad del salto y orientación horizontal automática
+
+- Fecha: 2026-07-27.
+- Estado: aceptada.
+- Problema: el salto inicial no comunicaba rotación ni una identidad visual
+  memorable, y la configuración Android usaba por error el valor de orientación
+  vertical aunque el viewport fuera 1280×720.
+- Alternativas consideradas:
+  - Mantener el personaje pentagonal sin rotación.
+  - Imitar literalmente el salto de otro juego.
+  - Diseñar un giro propio y permitir ambas orientaciones apaisadas.
+- Decisión: reemplazar el cuerpo por un cubo de doble dimensión y crear el
+  **Rift Roll**: cinco cuartos de giro, sentido dependiente de la dimensión,
+  estela energética, deformación de despegue y onda de aterrizaje. Android usa
+  `SCREEN_SENSOR_LANDSCAPE` (`4`).
+- Motivo: conserva la lectura inmediata de un cubo rotatorio, pero agrega una
+  firma visual y mecánica propia; la orientación automática evita que el juego
+  quede vertical o invertido al girar el teléfono.
+- Consecuencias: la rotación, la estela, el aterrizaje y la configuración
+  horizontal forman parte de la prueba automatizada; debe validarse la respuesta
+  táctil en un dispositivo físico.
+- Reversibilidad: alta; cantidad de giro, velocidad y efectos pueden calibrarse
+  sin cambiar el control ni el sistema de obstáculos.

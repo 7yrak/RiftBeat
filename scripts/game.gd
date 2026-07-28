@@ -16,6 +16,10 @@ const BEAT_INTERVAL := 60.0 / BPM
 const ROUND_DURATION := 45.0
 const GRAVITY := 1900.0
 const JUMP_SPEED := -720.0
+const RIFT_ROLL_TURNS := 1.25
+const RIFT_ROLL_SPEED := 10.5
+const TRAIL_INTERVAL := 0.045
+const TRAIL_LIFETIME := 0.32
 const CLICK_SAMPLE_COUNT := 2600
 const SAMPLE_RATE := 44100.0
 const OBSTACLE_PATTERN := [0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0]
@@ -31,6 +35,12 @@ var game_state: int = GameState.TITLE
 var active_lane := 0
 var jump_offset := 0.0
 var jump_velocity := 0.0
+var player_rotation := 0.0
+var roll_target := 0.0
+var roll_direction := 1.0
+var takeoff_squash := 0.0
+var landing_impact := 0.0
+var trail_timer := 0.0
 var elapsed_time := 0.0
 var beat_timer := 0.0
 var beat_count := 0
@@ -46,6 +56,7 @@ var lives := 3
 var is_paused := false
 var obstacles: Array[Dictionary] = []
 var stars: Array[Vector2] = []
+var jump_trail: Array[Dictionary] = []
 
 var audio_player: AudioStreamPlayer
 var synth_playback: AudioStreamGeneratorPlayback
@@ -86,17 +97,31 @@ func _update_game(delta: float) -> void:
 	beat_timer += delta
 	switch_cooldown = maxf(0.0, switch_cooldown - delta)
 	invulnerability = maxf(0.0, invulnerability - delta)
+	takeoff_squash = maxf(0.0, takeoff_squash - delta * 7.5)
+	landing_impact = maxf(0.0, landing_impact - delta * 5.5)
+	_update_jump_trail(delta)
 
 	while beat_timer >= BEAT_INTERVAL:
 		beat_timer -= BEAT_INTERVAL
 		_on_beat()
 
 	if jump_offset < 0.0 or jump_velocity < 0.0:
+		player_rotation = move_toward(
+			player_rotation,
+			roll_target,
+			RIFT_ROLL_SPEED * delta
+		)
+		trail_timer -= delta
+		while trail_timer <= 0.0:
+			_add_jump_trail_sample()
+			trail_timer += TRAIL_INTERVAL
 		jump_velocity += GRAVITY * delta
 		jump_offset += jump_velocity * delta
 		if jump_offset >= 0.0:
 			jump_offset = 0.0
 			jump_velocity = 0.0
+			player_rotation = roll_target
+			landing_impact = 1.0
 
 	var speed := minf(430.0, 320.0 + elapsed_time * 2.4)
 	for index in range(obstacles.size() - 1, -1, -1):
@@ -191,6 +216,12 @@ func start_game() -> void:
 	active_lane = 0
 	jump_offset = 0.0
 	jump_velocity = 0.0
+	player_rotation = 0.0
+	roll_target = 0.0
+	roll_direction = 1.0
+	takeoff_squash = 0.0
+	landing_impact = 0.0
+	trail_timer = 0.0
 	elapsed_time = 0.0
 	beat_timer = 0.0
 	beat_count = 0
@@ -204,6 +235,7 @@ func start_game() -> void:
 	lives = 3
 	is_paused = false
 	obstacles.clear()
+	jump_trail.clear()
 	_on_beat()
 
 
@@ -212,6 +244,11 @@ func jump() -> void:
 		return
 	if is_zero_approx(jump_offset) and is_zero_approx(jump_velocity):
 		jump_velocity = JUMP_SPEED
+		roll_direction = 1.0 if active_lane == 0 else -1.0
+		roll_target = player_rotation + roll_direction * TAU * RIFT_ROLL_TURNS
+		takeoff_squash = 1.0
+		trail_timer = 0.0
+		_add_jump_trail_sample()
 
 
 func switch_dimension() -> void:
@@ -220,6 +257,22 @@ func switch_dimension() -> void:
 	active_lane = 1 - active_lane
 	switch_cooldown = 0.16
 	switch_flash = 1.0
+
+
+func _update_jump_trail(delta: float) -> void:
+	for index in range(jump_trail.size() - 1, -1, -1):
+		jump_trail[index]["life"] = float(jump_trail[index]["life"]) - delta
+		if float(jump_trail[index]["life"]) <= 0.0:
+			jump_trail.remove_at(index)
+
+
+func _add_jump_trail_sample() -> void:
+	jump_trail.append({
+		"center": _player_center(),
+		"rotation": player_rotation,
+		"life": TRAIL_LIFETIME,
+		"lane": active_lane,
+	})
 
 
 func _toggle_pause() -> void:
@@ -410,30 +463,111 @@ func _draw_obstacles() -> void:
 
 func _draw_player() -> void:
 	var lane_color := COLOR_CYAN if active_lane == 0 else COLOR_PINK
-	var center := Vector2(
-		PLAYER_X,
-		LANE_Y[active_lane] - PLAYER_SIZE.y * 0.5 + jump_offset
-	)
+	var center := _player_center()
 	var blink := invulnerability > 0.0 and int(invulnerability * 12.0) % 2 == 0
 	var opacity := 0.3 if blink else 1.0
 	var glow_strength := 0.12 + beat_pulse * 0.12 + switch_flash * 0.14
+	var air_height := clampf(-jump_offset / 145.0, 0.0, 1.0)
+	var shadow_width := lerpf(42.0, 23.0, air_height)
+	var body_scale := Vector2.ONE
+	body_scale.x += takeoff_squash * 0.16 + landing_impact * 0.22
+	body_scale.y -= takeoff_squash * 0.13 + landing_impact * 0.18
 
-	draw_ellipse_shadow(Vector2(PLAYER_X, LANE_Y[active_lane] + 4.0), 42.0, 10.0)
+	_draw_jump_trail()
+	draw_ellipse_shadow(
+		Vector2(PLAYER_X, LANE_Y[active_lane] + 4.0),
+		shadow_width,
+		lerpf(10.0, 5.0, air_height)
+	)
+	if landing_impact > 0.0:
+		_draw_landing_wave(lane_color)
 	draw_circle(center, 46.0 + switch_flash * 20.0, Color(lane_color, glow_strength))
 
-	var points := PackedVector2Array([
-		center + Vector2(0.0, -32.0),
-		center + Vector2(26.0, -5.0),
-		center + Vector2(18.0, 27.0),
-		center + Vector2(-18.0, 27.0),
-		center + Vector2(-26.0, -5.0),
-	])
+	var points := _square_points(center, 28.0, player_rotation, body_scale)
 	draw_colored_polygon(points, Color(lane_color, opacity))
-	draw_polyline(PackedVector2Array([
-		points[0], points[1], points[2], points[3], points[4], points[0]
-	]), Color(COLOR_WHITE, opacity), 3.0, true)
-	draw_circle(center + Vector2(0.0, -5.0), 7.0, Color(COLOR_BG, opacity))
-	draw_circle(center + Vector2(0.0, -5.0), 3.0, Color(COLOR_WHITE, opacity))
+	var accent_color := COLOR_PINK if active_lane == 0 else COLOR_CYAN
+	draw_colored_polygon(
+		PackedVector2Array([points[0], points[1], points[2]]),
+		Color(accent_color, 0.34 * opacity)
+	)
+	draw_polyline(_closed_points(points), Color(COLOR_WHITE, opacity), 3.0, true)
+
+	var core_points := _square_points(
+		center,
+		10.0,
+		player_rotation + PI * 0.25,
+		Vector2.ONE
+	)
+	draw_colored_polygon(core_points, Color(COLOR_BG, 0.9 * opacity))
+	draw_polyline(_closed_points(core_points), Color(COLOR_WHITE, 0.75 * opacity), 2.0, true)
+	var slash_start := center + Vector2(-10.0, 0.0).rotated(player_rotation)
+	var slash_end := center + Vector2(10.0, 0.0).rotated(player_rotation)
+	draw_line(slash_start, slash_end, Color(accent_color, opacity), 3.0, true)
+
+
+func _player_center() -> Vector2:
+	return Vector2(
+		PLAYER_X,
+		LANE_Y[active_lane] - PLAYER_SIZE.y * 0.5 + jump_offset
+	)
+
+
+func _square_points(
+	center: Vector2,
+	half_extent: float,
+	rotation: float,
+	scale: Vector2
+) -> PackedVector2Array:
+	var points := PackedVector2Array()
+	for local_point in [
+		Vector2(-half_extent, -half_extent),
+		Vector2(half_extent, -half_extent),
+		Vector2(half_extent, half_extent),
+		Vector2(-half_extent, half_extent),
+	]:
+		points.append(center + (local_point * scale).rotated(rotation))
+	return points
+
+
+func _closed_points(points: PackedVector2Array) -> PackedVector2Array:
+	var closed := points.duplicate()
+	if not points.is_empty():
+		closed.append(points[0])
+	return closed
+
+
+func _draw_jump_trail() -> void:
+	for sample in jump_trail:
+		var life_ratio := clampf(
+			float(sample["life"]) / TRAIL_LIFETIME,
+			0.0,
+			1.0
+		)
+		var trail_color := COLOR_CYAN if int(sample["lane"]) == 0 else COLOR_PINK
+		var points := _square_points(
+			Vector2(sample["center"]),
+			25.0,
+			float(sample["rotation"]),
+			Vector2.ONE
+		)
+		draw_polyline(
+			_closed_points(points),
+			Color(trail_color, life_ratio * 0.28),
+			2.0,
+			true
+		)
+
+
+func _draw_landing_wave(color: Color) -> void:
+	var center := Vector2(PLAYER_X, LANE_Y[active_lane] + 3.0)
+	var expansion := 1.0 - landing_impact
+	var radius_x := 40.0 + expansion * 70.0
+	var radius_y := 7.0 + expansion * 8.0
+	var points := PackedVector2Array()
+	for step in range(25):
+		var angle := TAU * float(step) / 24.0
+		points.append(center + Vector2(cos(angle) * radius_x, sin(angle) * radius_y))
+	draw_polyline(points, Color(color, landing_impact * 0.7), 3.0, true)
 
 
 func draw_ellipse_shadow(center: Vector2, radius_x: float, radius_y: float) -> void:

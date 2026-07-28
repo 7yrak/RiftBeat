@@ -303,3 +303,63 @@ Android antes de diseñar contenido adicional.
 
 Instalar el APK en un teléfono Android ARM64, jugar tres partidas completas y
 registrar feedback de dificultad, controles táctiles, audio y rendimiento.
+
+## Sesión 003 - 2026-07-27 23:09 America/Santiago
+
+### Objetivo
+
+Dar al salto una identidad rotatoria propia inspirada en la claridad de los
+arcades de cubo y corregir el juego para Android horizontal.
+
+### Estado inicial
+
+- `main` estaba limpio y sincronizado con `origin/main`.
+- La versión estable era `0.1.0`.
+- El personaje saltaba sin rotación y conservaba una silueta pentagonal.
+- El viewport era 1280×720, pero
+  `display/window/handheld/orientation=1` solicitaba orientación vertical en
+  Android.
+
+### Trabajo realizado
+
+- Se diseñó el **Rift Roll** con cinco cuartos de giro por salto.
+- El giro es horario en cyan y antihorario en magenta.
+- Se reemplazó el personaje por un cubo de dos colores con núcleo de grieta.
+- Se agregaron estela rotatoria, sombra dependiente de altura, squash de
+  despegue y onda de impacto al aterrizar.
+- Android pasó a horizontal automática mediante
+  `SCREEN_SENSOR_LANDSCAPE` (`4`), compatible con ambos sentidos apaisados.
+- La versión de aplicación y exportación avanzó a `0.1.1` (`versionCode` 2).
+- La captura de QA ahora muestra el salto y libera correctamente la escena.
+
+### Pruebas y resultados
+
+- Prueba headless de escena y mecánicas existentes: aprobada.
+- Verificación automatizada de viewport horizontal: aprobada.
+- Verificación automatizada de orientación Android `4`: aprobada.
+- Giro, estela, encaje al aterrizar e impacto visual: aprobados.
+- Captura renderizada 1280×720 durante el salto: aprobada.
+- La captura terminó sin objetos filtrados.
+
+### Problemas encontrados
+
+- El valor de orientación `1` no significaba horizontal en Godot 4; corresponde
+  a orientación vertical.
+- La captura de QA cerraba la escena en el mismo frame y Godot informaba una
+  instancia filtrada.
+
+### Soluciones aplicadas
+
+- Se confirmó la enumeración oficial de Godot y se configuró el valor `4`.
+- La prueba de captura ahora libera la escena, espera dos frames y luego termina.
+
+### Problemas pendientes
+
+- Generar y validar el APK `0.1.1`.
+- Probar el giro y ambas posiciones horizontales en un teléfono Android.
+- Definir una licencia para el repositorio.
+
+### Próximo paso recomendado
+
+Crear el commit fuente de `0.1.1`, exportar el APK desde ese commit y repetir las
+verificaciones de firma, alineación, metadatos, arquitectura y checksum.

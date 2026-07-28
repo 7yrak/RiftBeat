@@ -9,7 +9,7 @@ entre las dimensiones cyan y magenta al compás de 120 BPM.
 
 - Motor: Godot 4.7.1.
 - Plataforma principal: Android en orientación horizontal.
-- Versión del MVP: `0.1.0`.
+- Versión del MVP: `0.1.1`.
 - Renderizador: GL Compatibility.
 - APK más reciente: `release/RiftBeat-latest.apk`.
 - Pruebas automatizadas: `tests/smoke_test.gd`.
@@ -33,9 +33,13 @@ reescriben.
 ## Controles
 
 - Mitad izquierda de la pantalla: cambiar de dimensión.
-- Mitad derecha de la pantalla: saltar.
+- Mitad derecha de la pantalla: saltar con el **Rift Roll**, un giro de cinco
+  cuartos con dirección vinculada a la dimensión, estela y golpe de aterrizaje.
 - Teclado para desarrollo: `Tab` cambia, `Espacio` salta, `P` pausa y `R`
   reinicia.
+
+En Android el juego se bloquea en horizontal automática: funciona en las dos
+posiciones apaisadas del teléfono.
 
 ## Ejecutar las pruebas
 
