@@ -15,6 +15,7 @@ exports/
 *.apk
 !release/*.apk
 *.aab
+*.idsig
 
 # Android and Gradle
 .gradle/
