@@ -1,18 +1,18 @@
 # RiftBeat
 
-Repositorio oficial de RiftBeat.
+Juego arcade rítmico de dos dimensiones creado con Godot para Android.
 
-El proyecto se encuentra en su fase de inicialización. La visión jugable, el
-alcance del MVP y la versión objetivo de Godot todavía deben definirse antes de
-crear la primera escena o implementar mecánicas.
+El jugador debe sobrevivir durante 45 segundos, saltando obstáculos y cambiando
+entre las dimensiones cyan y magenta al compás de 120 BPM.
 
 ## Estado
 
-- Repositorio base: inicializado.
-- Motor previsto: Godot.
-- Plataforma prevista: Android.
-- Proyecto ejecutable: todavía no creado.
-- Pruebas automatizadas: todavía no configuradas.
+- Motor: Godot 4.7.1.
+- Plataforma principal: Android en orientación horizontal.
+- Versión del MVP: `0.1.0`.
+- Renderizador: GL Compatibility.
+- APK más reciente: `release/RiftBeat-latest.apk`.
+- Pruebas automatizadas: `tests/smoke_test.gd`.
 
 El estado vigente y el siguiente paso exacto se mantienen en
 [`docs/ESTADO_ACTUAL.md`](docs/ESTADO_ACTUAL.md).
@@ -30,17 +30,47 @@ Antes de modificar el proyecto:
 La bitácora es acumulativa: las entradas anteriores no se borran ni se
 reescriben.
 
-## Estructura inicial
+## Controles
+
+- Mitad izquierda de la pantalla: cambiar de dimensión.
+- Mitad derecha de la pantalla: saltar.
+- Teclado para desarrollo: `Tab` cambia, `Espacio` salta, `P` pausa y `R`
+  reinicia.
+
+## Ejecutar las pruebas
+
+```powershell
+godot_console --headless --path . --script res://tests/smoke_test.gd
+```
+
+## Generar el APK
+
+Con Godot 4.7.1, sus plantillas de exportación y el SDK Android configurados:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools/export_android.ps1
+```
+
+El script ejecuta las pruebas antes de exportar y actualiza el checksum
+`release/RiftBeat-latest.apk.sha256`.
+
+## Estructura
 
 ```text
 docs/
 ├── BITACORA.md
 ├── DECISIONES.md
 └── ESTADO_ACTUAL.md
+assets/
+release/
+scenes/
+scripts/
+tests/
+tools/
 ```
 
-Cuando se cree el proyecto Godot, esta sección deberá actualizarse con su
-estructura real y los comandos de validación.
+La implementación visual y el sonido del pulso se generan proceduralmente; no
+hay recursos audiovisuales de terceros.
 
 ## Repositorio
 

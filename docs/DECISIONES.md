@@ -61,3 +61,60 @@ nuevo ADR.
   sesión debe cerrar esas definiciones antes de implementar mecánicas.
 - Reversibilidad: alta; la decisión queda superada en cuanto se documenten los
   requisitos y se cree el proyecto mínimo mediante un nuevo avance.
+
+## ADR-004 - Alcance del primer MVP jugable
+
+- Fecha: 2026-07-27.
+- Estado: aceptada; reemplaza el aplazamiento de ADR-003.
+- Problema: se necesita una primera versión concreta que pueda probarse en
+  Android sin disponer todavía de un documento de diseño completo.
+- Alternativas consideradas:
+  - Esperar una especificación exhaustiva.
+  - Crear un prototipo de escritorio.
+  - Crear directamente un arcade rítmico táctil para Android.
+- Decisión: implementar una partida de 45 segundos a 120 BPM con avance
+  automático, salto, dos dimensiones, obstáculos, tres vidas, puntuación,
+  victoria, derrota, pausa y reinicio.
+- Motivo: materializa las pistas funcionales del proyecto y permite obtener
+  feedback temprano en el dispositivo objetivo.
+- Consecuencias: el MVP prioriza un bucle corto y legible; contenido, música,
+  niveles y progresión quedan para iteraciones posteriores.
+- Reversibilidad: alta; duración, dificultad y patrón pueden ajustarse sin
+  reemplazar la arquitectura.
+
+## ADR-005 - Android como plataforma principal y carpeta release
+
+- Fecha: 2026-07-27.
+- Estado: aceptada.
+- Problema: la versión de prueba debe ser instalable en Android y debe existir un
+  lugar estable para encontrar el último artefacto.
+- Alternativas consideradas:
+  - Entregar solo el proyecto Godot.
+  - Publicar únicamente compilaciones de escritorio.
+  - Conservar el APK estable en `release/`.
+- Decisión: Android horizontal es el objetivo principal; el último APK aprobado,
+  su checksum y sus metadatos se mantienen en `release/`.
+- Motivo: permite probar el juego sin abrir el editor y hace explícito qué
+  binario corresponde a la versión vigente.
+- Consecuencias: `.gitignore` admite únicamente APK estables dentro de
+  `release/`; los APK temporales siguen excluidos.
+- Reversibilidad: media; una futura distribución mediante GitHub Releases puede
+  reemplazar el almacenamiento del binario mediante un nuevo ADR.
+
+## ADR-006 - Godot 4.7.1, GDScript y visuales procedurales
+
+- Fecha: 2026-07-27.
+- Estado: aceptada.
+- Problema: elegir una base técnica estable, pequeña y exportable a Android.
+- Alternativas consideradas:
+  - Godot 4.7.1 con GDScript.
+  - Godot con C#.
+  - Recursos gráficos y audio externos desde la primera versión.
+- Decisión: usar Godot 4.7.1 estable, GDScript, GL Compatibility y gráficos y
+  pulso sonoro generados en tiempo de ejecución.
+- Motivo: reduce dependencias, licencias de recursos y tamaño del proyecto, y
+  mantiene compatibilidad amplia con Android.
+- Consecuencias: el estilo visual es abstracto y la música se limita por ahora a
+  pulsos sintetizados; deberá evolucionar si el prototipo valida su jugabilidad.
+- Reversibilidad: alta; pueden añadirse recursos y sistemas separados sin romper
+  el bucle principal.

@@ -1,25 +1,23 @@
 # Estado actual de RiftBeat
 
-Actualizado: 2026-07-27 22:27 America/Santiago
+Actualizado: 2026-07-27 22:53 America/Santiago
 
 ## Objetivo general
 
-Desarrollar RiftBeat como un juego en Godot con destino Android. El concepto
-jugable, las mecánicas principales y los criterios de finalización todavía deben
-ser confirmados antes de fijar el alcance del MVP.
+Desarrollar RiftBeat como un juego arcade rítmico para Android en el que el
+jugador sobrevive 45 segundos alternando entre dos dimensiones y saltando
+obstáculos sincronizados a 120 BPM.
 
 ## Situación vigente
 
-- Hito actual: repositorio y protocolo de continuidad inicializados.
-- Progreso aproximado del MVP: 0 %, pendiente de definir el denominador.
-- Última funcionalidad terminada: infraestructura documental y de control de
-  versiones.
-- Funcionalidad en desarrollo: ninguna; el siguiente trabajo es definir el MVP.
-- Estado de compilación: no disponible; todavía no existe `project.godot`.
-- Estado de las pruebas: comprobaciones de repositorio aprobadas; pruebas del
-  juego no aplican todavía.
-- Último commit válido: `docs: update project log` (cierre documental de la
-  sesión 001).
+- Hito actual: jugabilidad del MVP implementada; exportación Android en curso.
+- Progreso aproximado del MVP: 80 %.
+- Última funcionalidad terminada: bucle jugable completo con salto, cambio de
+  dimensión, ritmo, colisiones, vidas, puntuación, victoria y derrota.
+- Funcionalidad en desarrollo: generación y validación del primer APK.
+- Estado de compilación: importación Godot 4.7.1 aprobada; APK pendiente.
+- Estado de las pruebas: prueba headless y capturas renderizadas aprobadas.
+- Último commit válido: pendiente de crear para la jugabilidad de la sesión 002.
 - Rama actual: `main`.
 
 ## Entorno comprobado
@@ -28,25 +26,27 @@ ser confirmados antes de fijar el alcance del MVP.
 - Cuenta GitHub activa: `7yrak`.
 - Acceso a `7yrak/RiftBeat`: `ADMIN`.
 - Java 21.0.11 LTS: disponible.
-- Godot: no disponible en `PATH`.
-- Gradle: no disponible en `PATH`.
+- Godot 4.7.1: instalado y verificado.
+- Android Platform Tools 37.0.0: instalado.
+- Android Build Tools 35.0.1: instalado.
+- Android Platform 35: instalada.
 
 ## Bloqueos
 
-- Falta una definición explícita del concepto y alcance del MVP.
-- Falta elegir e instalar la versión objetivo de Godot.
+- Ningún bloqueo técnico conocido para generar el primer APK.
 
 ## Problemas conocidos
 
-- No hay proyecto ejecutable, escenas, scripts ni pruebas automatizadas.
 - La licencia del proyecto está pendiente.
-- No se puede validar todavía una exportación Android.
+- El APK de prueba usará la firma debug de Godot; aún no es una compilación para
+  Google Play.
+- Falta una validación manual en un dispositivo Android físico.
 
 ## Próxima tarea exacta
 
-Documentar el MVP de RiftBeat —bucle jugable, controles, condición de éxito o
-fallo, plataforma mínima y criterio de terminado— y escoger la versión de Godot.
-Después, crear e importar un proyecto mínimo y verificar su arranque headless.
+Instalar las plantillas oficiales de Godot 4.7.1, ejecutar
+`tools/export_android.ps1` y validar que el APK resultante tenga firma, metadatos
+y checksum correctos.
 
 ## Comandos recomendados para continuar
 
