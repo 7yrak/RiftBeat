@@ -28,6 +28,11 @@ func _capture() -> void:
 		return
 
 	game.start_game()
+	game.obstacles.clear()
+	game.beat_count = 0
+	game._spawn_piece("light_gravity_zone", 0, 360.0)
+	game._spawn_piece("cracked_block", 0, 510.0)
+	game._spawn_piece("rhythm_press", 1, 720.0)
 	game.jump()
 	for _frame in range(14):
 		await process_frame
@@ -41,7 +46,26 @@ func _capture() -> void:
 		quit(1)
 		return
 
-	print("CAPTURAS OK: portada y partida.")
+	if not game.activate_rift_pulse():
+		push_error("Rift Pulse no encontró el bloque preparado para la captura.")
+		game.queue_free()
+		await process_frame
+		scene = null
+		quit(1)
+		return
+	for _frame in range(2):
+		await process_frame
+	var pulse_image := root.get_texture().get_image()
+	var pulse_result := pulse_image.save_png("res://.godot/riftbeat-pulse.png")
+	if pulse_result != OK:
+		push_error("No se pudo guardar Rift Pulse: %s" % error_string(pulse_result))
+		game.queue_free()
+		await process_frame
+		scene = null
+		quit(1)
+		return
+
+	print("CAPTURAS OK: portada, prototipos y Rift Pulse.")
 	game.queue_free()
 	await process_frame
 	scene = null

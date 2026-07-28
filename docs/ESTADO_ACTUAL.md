@@ -1,6 +1,6 @@
 # Estado actual de RiftBeat
 
-Actualizado: 2026-07-27 23:11 America/Santiago
+Actualizado: 2026-07-27 23:38 America/Santiago
 
 ## Objetivo general
 
@@ -10,15 +10,17 @@ obstáculos sincronizados a 120 BPM.
 
 ## Situación vigente
 
-- Hito actual: versión Android `0.1.1` disponible para pruebas.
-- Progreso aproximado del MVP: 97 %; falta validación física y calibración.
-- Última funcionalidad terminada: salto característico **Rift Roll**, con cinco
-  cuartos de giro, dirección por dimensión, estela, squash y onda de aterrizaje.
-- Funcionalidad en desarrollo: ninguna; el siguiente paso es prueba física.
-- Estado de compilación: APK `0.1.1` generado y validado en
-  `release/RiftBeat-latest.apk`.
-- Estado de las pruebas: automatización, QA visual, orientación, firma,
-  alineación, metadatos, paquete y checksum aprobados; prueba física pendiente.
+- Hito actual: sistema modular y prototipos de `0.2.0` implementados; APK
+  pendiente de regeneración.
+- Progreso aproximado del MVP ampliado: 82 %; el alcance creció para incluir
+  poderes y familias de obstáculos.
+- Última funcionalidad terminada: catálogo modular de 12 piezas y prototipos de
+  prensa rítmica, gravedad ligera y bloque destructible con Rift Pulse.
+- Funcionalidad en desarrollo: publicación del APK Android `0.2.0`.
+- Estado de compilación: la fuente pasa pruebas funcionales y QA visual; el APK
+  estable todavía corresponde a `0.1.1`.
+- Estado de las pruebas: catálogo, combinación de propiedades, prensa, gravedad,
+  destrucción, cargas, juego previo y capturas aprobados; exportación pendiente.
 - Último commit fuente validado: `feat: add signature Rift Roll jump`.
 - Commit fuente del APK vigente: `4751e9a88f35dcf176419b0880caca792d2e083e`.
 - Rama actual: `main`.
@@ -44,17 +46,17 @@ obstáculos sincronizados a 120 BPM.
 - La licencia del proyecto está pendiente.
 - El APK de prueba usará la firma debug de Godot; aún no es una compilación para
   Google Play.
-- Falta una validación manual del Rift Roll y la rotación horizontal automática
-  en un dispositivo Android físico.
+- El usuario completó más de tres partidas de `0.1.1` y confirmó que el concepto
+  tiene potencial; falta validar los prototipos de `0.2.0`.
 - `aapt2` informa una referencia opcional de icono temático del template
   precompilado; el APK, los iconos normales y adaptativos, la firma y la
   alineación son válidos.
 
 ## Próxima tarea exacta
 
-Instalar `release/RiftBeat-latest.apk` en un teléfono ARM64, rotar el dispositivo
-en ambos sentidos horizontales y completar al menos tres partidas, registrando
-sensación del Rift Roll, respuesta táctil, audio y rendimiento.
+Generar y validar `release/RiftBeat-latest.apk` como versión `0.2.0`. Después,
+probar tres partidas en Android y responder las cinco preguntas definidas en
+`docs/OBSTACULOS.md` antes de crear más etapas.
 
 ## Comandos recomendados para continuar
 

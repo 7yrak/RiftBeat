@@ -40,6 +40,11 @@ $godot = Resolve-GodotConsole -RequestedPath $GodotPath
 New-Item -ItemType Directory -Force -Path $releaseDirectory | Out-Null
 
 Write-Host "Ejecutando pruebas headless..."
+& $godot --headless --path $projectRoot --script res://tests/obstacle_system_test.gd
+if ($LASTEXITCODE -ne 0) {
+    throw "Las pruebas del sistema de obstáculos fallaron; no se generó un APK."
+}
+
 & $godot --headless --path $projectRoot --script res://tests/smoke_test.gd
 if ($LASTEXITCODE -ne 0) {
     throw "Las pruebas fallaron; no se generó un APK."

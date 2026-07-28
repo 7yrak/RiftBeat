@@ -1,5 +1,8 @@
 extends Node2D
 
+const ObstacleCatalog = preload("res://scripts/obstacles/obstacle_catalog.gd")
+const ObstacleRuntime = preload("res://scripts/obstacles/obstacle_runtime.gd")
+
 enum GameState {
 	TITLE,
 	PLAYING,
@@ -20,6 +23,9 @@ const RIFT_ROLL_TURNS := 1.25
 const RIFT_ROLL_SPEED := 10.5
 const TRAIL_INTERVAL := 0.045
 const TRAIL_LIFETIME := 0.32
+const MAX_RIFT_CHARGES := 3
+const RIFT_PULSE_RANGE := 330.0
+const PULSE_BUTTON_RECT := Rect2(470.0, 620.0, 340.0, 70.0)
 const CLICK_SAMPLE_COUNT := 2600
 const SAMPLE_RATE := 44100.0
 const OBSTACLE_PATTERN := [0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0]
@@ -48,6 +54,11 @@ var beat_pulse := 0.0
 var switch_flash := 0.0
 var switch_cooldown := 0.0
 var invulnerability := 0.0
+var current_gravity_scale := 1.0
+var rift_charges := MAX_RIFT_CHARGES
+var rift_pulse_cooldown := 0.0
+var rift_pulse_flash := 0.0
+var pulse_burst_position := Vector2.ZERO
 var ambient_time := 0.0
 var score := 0
 var combo := 0
@@ -85,6 +96,7 @@ func _process(delta: float) -> void:
 	_fill_audio_buffer()
 	beat_pulse = maxf(0.0, beat_pulse - delta * 3.8)
 	switch_flash = maxf(0.0, switch_flash - delta * 4.5)
+	rift_pulse_flash = maxf(0.0, rift_pulse_flash - delta * 4.2)
 
 	if game_state == GameState.PLAYING and not is_paused:
 		_update_game(delta)
@@ -97,6 +109,7 @@ func _update_game(delta: float) -> void:
 	beat_timer += delta
 	switch_cooldown = maxf(0.0, switch_cooldown - delta)
 	invulnerability = maxf(0.0, invulnerability - delta)
+	rift_pulse_cooldown = maxf(0.0, rift_pulse_cooldown - delta)
 	takeoff_squash = maxf(0.0, takeoff_squash - delta * 7.5)
 	landing_impact = maxf(0.0, landing_impact - delta * 5.5)
 	_update_jump_trail(delta)
@@ -104,6 +117,19 @@ func _update_game(delta: float) -> void:
 	while beat_timer >= BEAT_INTERVAL:
 		beat_timer -= BEAT_INTERVAL
 		_on_beat()
+
+	var speed := minf(430.0, 320.0 + elapsed_time * 2.4)
+	for obstacle in obstacles:
+		ObstacleRuntime.update(obstacle, delta, speed, beat_count)
+
+	current_gravity_scale = 1.0
+	for obstacle in obstacles:
+		current_gravity_scale *= ObstacleRuntime.gravity_scale_at(
+			obstacle,
+			PLAYER_X,
+			active_lane
+		)
+	current_gravity_scale = clampf(current_gravity_scale, 0.25, 2.2)
 
 	if jump_offset < 0.0 or jump_velocity < 0.0:
 		player_rotation = move_toward(
@@ -115,7 +141,7 @@ func _update_game(delta: float) -> void:
 		while trail_timer <= 0.0:
 			_add_jump_trail_sample()
 			trail_timer += TRAIL_INTERVAL
-		jump_velocity += GRAVITY * delta
+		jump_velocity += GRAVITY * current_gravity_scale * delta
 		jump_offset += jump_velocity * delta
 		if jump_offset >= 0.0:
 			jump_offset = 0.0
@@ -123,23 +149,21 @@ func _update_game(delta: float) -> void:
 			player_rotation = roll_target
 			landing_impact = 1.0
 
-	var speed := minf(430.0, 320.0 + elapsed_time * 2.4)
 	for index in range(obstacles.size() - 1, -1, -1):
 		var obstacle := obstacles[index]
-		obstacle["x"] = float(obstacle["x"]) - speed * delta
 
 		if not bool(obstacle["passed"]) and float(obstacle["x"]) < PLAYER_X:
 			obstacle["passed"] = true
 			combo += 1
 			best_combo = maxi(best_combo, combo)
-			score += 80 + combo * 5
+			score += int(obstacle["reaction"]["score"]) + combo * 5
 
 		if _obstacle_hits_player(obstacle):
 			obstacles.remove_at(index)
 			_take_hit()
 			continue
 
-		if float(obstacle["x"]) < -120.0:
+		if float(obstacle["x"]) < -120.0 - float(obstacle["width"]) * 0.5:
 			obstacles.remove_at(index)
 
 	if elapsed_time >= ROUND_DURATION:
@@ -152,7 +176,20 @@ func _on_beat() -> void:
 	score += 5
 	_trigger_click(beat_count % 4 == 1)
 
-	if beat_count % 12 == 0:
+	var cycle_index := int(beat_count / 24)
+	var prototype_lane := cycle_index % 2
+	var cycle_beat := posmod(beat_count, 24)
+
+	if beat_count > 1 and cycle_beat == 1:
+		rift_charges = mini(MAX_RIFT_CHARGES, rift_charges + 1)
+
+	if cycle_beat == 4:
+		_spawn_piece("light_gravity_zone", prototype_lane)
+	elif cycle_beat == 10:
+		_spawn_piece("rhythm_press", 1 - prototype_lane)
+	elif cycle_beat == 18:
+		_spawn_piece("cracked_block", prototype_lane)
+	elif beat_count % 12 == 0:
 		_spawn_obstacle(0)
 		_spawn_obstacle(1)
 	elif beat_count % 2 == 0:
@@ -164,17 +201,34 @@ func _spawn_obstacle(lane: int) -> void:
 	var height := 68.0
 	if beat_count % 8 == 0:
 		height = 82.0
-	obstacles.append({
-		"x": VIEW_SIZE.x + 70.0,
-		"lane": lane,
-		"width": 48.0,
+	_spawn_piece("base_block", lane, VIEW_SIZE.x + 70.0, {
 		"height": height,
-		"passed": false,
+		"max_height": height,
 	})
 
 
+func _spawn_piece(
+	piece_id: String,
+	lane: int,
+	x_position: float = VIEW_SIZE.x + 70.0,
+	modifiers: Dictionary = {}
+) -> Dictionary:
+	var obstacle := ObstacleCatalog.create(
+		piece_id,
+		lane,
+		x_position,
+		modifiers
+	)
+	obstacles.append(obstacle)
+	return obstacle
+
+
 func _obstacle_hits_player(obstacle: Dictionary) -> bool:
-	if invulnerability > 0.0 or int(obstacle["lane"]) != active_lane:
+	if (
+		invulnerability > 0.0
+		or not ObstacleRuntime.affects_lane(obstacle, active_lane)
+		or not ObstacleRuntime.is_solid(obstacle)
+	):
 		return false
 
 	var player_rect := Rect2(
@@ -184,12 +238,9 @@ func _obstacle_hits_player(obstacle: Dictionary) -> bool:
 		),
 		PLAYER_SIZE
 	).grow(-6.0)
-	var obstacle_rect := Rect2(
-		Vector2(
-			float(obstacle["x"]) - float(obstacle["width"]) * 0.5,
-			LANE_Y[int(obstacle["lane"])] - float(obstacle["height"])
-		),
-		Vector2(float(obstacle["width"]), float(obstacle["height"]))
+	var obstacle_rect := ObstacleRuntime.collision_rect(
+		obstacle,
+		LANE_Y[int(obstacle["lane"])]
 	).grow(-4.0)
 	return player_rect.intersects(obstacle_rect)
 
@@ -208,6 +259,7 @@ func _finish_game(won: bool) -> void:
 	game_state = GameState.VICTORY if won else GameState.GAME_OVER
 	is_paused = false
 	obstacles.clear()
+	current_gravity_scale = 1.0
 	_trigger_click(true)
 
 
@@ -229,6 +281,11 @@ func start_game() -> void:
 	switch_flash = 0.0
 	switch_cooldown = 0.0
 	invulnerability = 0.0
+	current_gravity_scale = 1.0
+	rift_charges = MAX_RIFT_CHARGES
+	rift_pulse_cooldown = 0.0
+	rift_pulse_flash = 0.0
+	pulse_burst_position = Vector2.ZERO
 	score = 0
 	combo = 0
 	best_combo = 0
@@ -257,6 +314,58 @@ func switch_dimension() -> void:
 	active_lane = 1 - active_lane
 	switch_cooldown = 0.16
 	switch_flash = 1.0
+
+
+func activate_rift_pulse() -> bool:
+	if (
+		game_state != GameState.PLAYING
+		or is_paused
+		or rift_charges <= 0
+		or rift_pulse_cooldown > 0.0
+	):
+		return false
+
+	var target_index := _find_pulse_target()
+	if target_index < 0:
+		return false
+
+	var target := obstacles[target_index]
+	var result := ObstacleRuntime.apply_power(target, "rift_pulse")
+	if not bool(result["applied"]):
+		return false
+
+	rift_charges -= 1
+	rift_pulse_cooldown = 0.28
+	rift_pulse_flash = 1.0
+	pulse_burst_position = Vector2(
+		float(target["x"]),
+		LANE_Y[int(target["lane"])] - float(target["height"]) * 0.5
+	)
+	_trigger_click(true)
+
+	if bool(result["destroyed"]):
+		score += int(target["reaction"]["score"])
+		combo += 1
+		best_combo = maxi(best_combo, combo)
+		obstacles.remove_at(target_index)
+	return true
+
+
+func _find_pulse_target() -> int:
+	var closest_index := -1
+	var closest_distance := RIFT_PULSE_RANGE + 1.0
+	for index in range(obstacles.size()):
+		var obstacle := obstacles[index]
+		if (
+			not ObstacleRuntime.affects_lane(obstacle, active_lane)
+			or not ObstacleRuntime.can_receive_power(obstacle, "rift_pulse")
+		):
+			continue
+		var distance := float(obstacle["x"]) - PLAYER_X
+		if distance >= -30.0 and distance <= RIFT_PULSE_RANGE and distance < closest_distance:
+			closest_distance = distance
+			closest_index = index
+	return closest_index
 
 
 func _update_jump_trail(delta: float) -> void:
@@ -295,6 +404,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				_handle_primary_action()
 			KEY_TAB, KEY_DOWN, KEY_S, KEY_SHIFT:
 				switch_dimension()
+			KEY_E, KEY_X, KEY_CTRL:
+				activate_rift_pulse()
 			KEY_R:
 				start_game()
 			KEY_ESCAPE, KEY_P:
@@ -317,6 +428,8 @@ func _handle_pointer(position: Vector2) -> void:
 		start_game()
 	elif is_paused:
 		_toggle_pause()
+	elif PULSE_BUTTON_RECT.has_point(position):
+		activate_rift_pulse()
 	elif position.x < get_viewport_rect().size.x * 0.5:
 		switch_dimension()
 	else:
@@ -439,26 +552,125 @@ func _draw_lanes() -> void:
 
 func _draw_obstacles() -> void:
 	for obstacle in obstacles:
-		var lane := int(obstacle["lane"])
-		var obstacle_color := COLOR_CYAN if lane == 0 else COLOR_PINK
-		var width := float(obstacle["width"])
-		var height := float(obstacle["height"])
-		var rect := Rect2(
-			Vector2(float(obstacle["x"]) - width * 0.5, LANE_Y[lane] - height),
-			Vector2(width, height)
+		if String(obstacle["visual"]["shape"]) == "gravity_zone":
+			_draw_gravity_zone(obstacle)
+	for obstacle in obstacles:
+		if String(obstacle["visual"]["shape"]) != "gravity_zone":
+			_draw_solid_obstacle(obstacle)
+
+
+func _draw_gravity_zone(obstacle: Dictionary) -> void:
+	var lane := int(obstacle["lane"])
+	var zone_color := COLOR_CYAN if lane == 0 else COLOR_PINK
+	var rect := Rect2(
+		Vector2(
+			float(obstacle["x"]) - float(obstacle["width"]) * 0.5,
+			LANE_Y[lane] - float(obstacle["height"])
+		),
+		Vector2(float(obstacle["width"]), float(obstacle["height"]))
+	)
+	var opacity := 0.72 if lane == active_lane else 0.2
+	draw_rect(rect, Color(zone_color, 0.075 * opacity), true)
+	draw_rect(rect, Color(zone_color, 0.5 * opacity), false, 3.0)
+	for marker in range(5):
+		var marker_x := rect.position.x + 32.0 + marker * 56.0
+		var drift := fmod(ambient_time * 42.0 + marker * 19.0, 72.0)
+		var marker_y := rect.end.y - 22.0 - drift
+		draw_line(
+			Vector2(marker_x, marker_y + 16.0),
+			Vector2(marker_x, marker_y - 10.0),
+			Color(zone_color, 0.55 * opacity),
+			3.0
 		)
-		var opacity := 0.95 if lane == active_lane else 0.23
-		draw_rect(rect.grow(11.0), Color(obstacle_color, 0.08 * opacity), true)
-		draw_rect(rect, Color(obstacle_color, 0.32 * opacity), true)
-		draw_rect(rect, Color(obstacle_color, opacity), false, 4.0)
-		for stripe in range(3):
-			var stripe_y := rect.position.y + 14.0 + stripe * 19.0
-			draw_line(
-				Vector2(rect.position.x + 8.0, stripe_y),
-				Vector2(rect.end.x - 8.0, stripe_y),
-				Color(obstacle_color, 0.45 * opacity),
-				3.0
+		draw_polyline(
+			PackedVector2Array([
+				Vector2(marker_x - 7.0, marker_y - 3.0),
+				Vector2(marker_x, marker_y - 11.0),
+				Vector2(marker_x + 7.0, marker_y - 3.0),
+			]),
+			Color(zone_color, 0.55 * opacity),
+			3.0
+		)
+	_draw_label(
+		"GRAVEDAD 38%",
+		Vector2(rect.position.x + 14.0, rect.position.y + 25.0),
+		16,
+		Color(zone_color, 0.82 * opacity)
+	)
+
+
+func _draw_solid_obstacle(obstacle: Dictionary) -> void:
+	var lane := int(obstacle["lane"])
+	var obstacle_color := COLOR_CYAN if lane == 0 else COLOR_PINK
+	var rect := ObstacleRuntime.collision_rect(obstacle, LANE_Y[lane])
+	var affects_active_lane := ObstacleRuntime.affects_lane(obstacle, active_lane)
+	var opacity := 0.95 if affects_active_lane else 0.23
+	if not bool(obstacle["rhythm"]["active"]):
+		opacity *= 0.38
+
+	draw_rect(rect.grow(11.0), Color(obstacle_color, 0.08 * opacity), true)
+	draw_rect(rect, Color(obstacle_color, 0.30 * opacity), true)
+	draw_rect(rect, Color(obstacle_color, opacity), false, 4.0)
+
+	match String(obstacle["visual"]["shape"]):
+		"press":
+			var cap_rect := Rect2(
+				rect.position.x - 9.0,
+				rect.position.y,
+				rect.size.x + 18.0,
+				14.0
 			)
+			draw_rect(cap_rect, Color(obstacle_color, 0.72 * opacity), true)
+			draw_line(
+				Vector2(rect.get_center().x, rect.position.y + 12.0),
+				Vector2(rect.get_center().x, rect.end.y - 8.0),
+				Color(COLOR_WHITE, 0.5 * opacity),
+				5.0
+			)
+			for light in range(3):
+				var light_color := (
+					COLOR_DANGER
+					if bool(obstacle["rhythm"]["active"])
+					else COLOR_MUTED
+				)
+				draw_circle(
+					Vector2(rect.position.x + 17.0 + light * 20.0, rect.end.y - 11.0),
+					4.0,
+					Color(light_color, opacity)
+				)
+		"cracked":
+			var crack_center := rect.get_center()
+			var crack_points := [
+				crack_center + Vector2(-4.0, -35.0),
+				crack_center + Vector2(6.0, -14.0),
+				crack_center + Vector2(-8.0, 2.0),
+				crack_center + Vector2(8.0, 18.0),
+				crack_center + Vector2(1.0, 35.0),
+			]
+			for point_index in range(crack_points.size() - 1):
+				draw_line(
+					crack_points[point_index],
+					crack_points[point_index + 1],
+					Color(COLOR_WHITE, 0.85 * opacity),
+					3.0
+				)
+			draw_circle(crack_center, 11.0, Color(COLOR_BG, 0.72 * opacity))
+			_draw_label(
+				"X",
+				crack_center + Vector2(-6.0, 7.0),
+				19,
+				Color(COLOR_WHITE, opacity)
+			)
+		_:
+			for stripe in range(3):
+				var stripe_y := rect.position.y + 14.0 + stripe * 19.0
+				if stripe_y < rect.end.y - 5.0:
+					draw_line(
+						Vector2(rect.position.x + 8.0, stripe_y),
+						Vector2(rect.end.x - 8.0, stripe_y),
+						Color(obstacle_color, 0.45 * opacity),
+						3.0
+					)
 
 
 func _draw_player() -> void:
@@ -481,6 +693,30 @@ func _draw_player() -> void:
 	)
 	if landing_impact > 0.0:
 		_draw_landing_wave(lane_color)
+	if rift_pulse_flash > 0.0:
+		var pulse_radius := 44.0 + (1.0 - rift_pulse_flash) * 120.0
+		draw_arc(
+			center,
+			pulse_radius,
+			0.0,
+			TAU,
+			48,
+			Color(COLOR_WHITE, rift_pulse_flash * 0.72),
+			4.0,
+			true
+		)
+		draw_line(
+			center,
+			pulse_burst_position,
+			Color(lane_color, rift_pulse_flash * 0.62),
+			6.0,
+			true
+		)
+		draw_circle(
+			pulse_burst_position,
+			18.0 + (1.0 - rift_pulse_flash) * 30.0,
+			Color(COLOR_WHITE, rift_pulse_flash * 0.28)
+		)
 	draw_circle(center, 46.0 + switch_flash * 20.0, Color(lane_color, glow_strength))
 
 	var points := _square_points(center, 28.0, player_rotation, body_scale)
@@ -585,6 +821,13 @@ func _draw_hud() -> void:
 	_draw_label("PUNTOS  %06d" % score, Vector2(36.0, 54.0), 26, COLOR_WHITE)
 	_draw_label("COMBO  x%d" % combo, Vector2(36.0, 88.0), 20, COLOR_CYAN)
 	_draw_label("VIDAS  %d/3" % lives, Vector2(1050.0, 54.0), 24, COLOR_WHITE)
+	if current_gravity_scale < 0.95:
+		_draw_text_centered(
+			"GRAVEDAD LIGERA  %d%%" % roundi(current_gravity_scale * 100.0),
+			113.0,
+			17,
+			COLOR_CYAN if active_lane == 0 else COLOR_PINK
+		)
 
 	var progress := clampf(elapsed_time / ROUND_DURATION, 0.0, 1.0)
 	var progress_rect := Rect2(390.0, 42.0, 500.0, 12.0)
@@ -603,6 +846,8 @@ func _draw_touch_controls() -> void:
 	var left_rect := Rect2(54.0, 620.0, 286.0, 70.0)
 	var right_rect := Rect2(940.0, 620.0, 286.0, 70.0)
 	_draw_button(left_rect, "CAMBIAR", COLOR_PINK)
+	var pulse_color := COLOR_WHITE if _find_pulse_target() >= 0 else COLOR_MUTED
+	_draw_button(PULSE_BUTTON_RECT, "PULSO  x%d" % rift_charges, pulse_color)
 	_draw_button(right_rect, "SALTAR", COLOR_CYAN)
 
 
@@ -628,14 +873,15 @@ func _draw_title() -> void:
 	_draw_text_centered("BEAT", 217.0, 78, Color(COLOR_PINK, title_pulse))
 	_draw_text_centered("DOS DIMENSIONES. UN SOLO RITMO.", 270.0, 22, COLOR_WHITE)
 
-	var panel := Rect2(320.0, 315.0, 640.0, 210.0)
+	var panel := Rect2(300.0, 310.0, 680.0, 240.0)
 	draw_rect(panel, Color(0.03, 0.05, 0.16, 0.92), true)
 	draw_rect(panel, Color(COLOR_CYAN, 0.35), false, 2.0)
-	_draw_text_centered("TOCA LA MITAD IZQUIERDA PARA CAMBIAR", 365.0, 21, COLOR_PINK)
-	_draw_text_centered("TOCA LA MITAD DERECHA PARA SALTAR", 405.0, 21, COLOR_CYAN)
-	_draw_text_centered("Sobrevive 45 segundos siguiendo el pulso", 458.0, 18, COLOR_MUTED)
+	_draw_text_centered("IZQUIERDA: CAMBIAR DIMENSIÓN", 355.0, 20, COLOR_PINK)
+	_draw_text_centered("CENTRO: RIFT PULSE  ·  DERECHA: SALTAR", 394.0, 20, COLOR_CYAN)
+	_draw_text_centered("Prensa · gravedad ligera · bloques destructibles", 440.0, 18, COLOR_WHITE)
+	_draw_text_centered("Sobrevive 45 segundos siguiendo el pulso", 478.0, 18, COLOR_MUTED)
 	_draw_text_centered("TOCA PARA EMPEZAR", 590.0, 28, COLOR_WHITE)
-	_draw_text_centered("Teclado: Tab cambia · Espacio salta · P pausa", 632.0, 17, COLOR_MUTED)
+	_draw_text_centered("Teclado: Tab cambia · E pulsa · Espacio salta · P pausa", 632.0, 17, COLOR_MUTED)
 
 
 func _draw_end_screen(won: bool) -> void:

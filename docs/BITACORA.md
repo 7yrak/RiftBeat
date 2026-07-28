@@ -393,3 +393,118 @@ verificaciones de firma, alineación, metadatos, arquitectura y checksum.
 
 Instalar la versión `0.1.1` en un teléfono ARM64, verificar ambas orientaciones
 apaisadas y jugar tres partidas para calibrar el Rift Roll.
+
+## Sesión 004 - 2026-07-27 23:38 America/Santiago
+
+### Objetivo
+
+Construir un sistema modular de obstáculos y aplicar tres prototipos antes de
+crear nuevas etapas: prensa rítmica, gravedad ligera y bloque destructible con
+Rift Pulse.
+
+### Estado inicial
+
+- `main` estaba limpio y sincronizado con `origin/main`.
+- La versión Android vigente era `0.1.1`.
+- El usuario había completado más de tres partidas y confirmó el potencial del
+  concepto.
+- Los obstáculos eran diccionarios simples programados dentro de `game.gd`.
+
+### Trabajo realizado
+
+- Se separó el catálogo de piezas de su evaluación durante la partida.
+- Se definió un contrato común de dimensión, movimiento, gravedad, destrucción,
+  ritmo y reacción.
+- Se registraron 12 piezas básicas combinables.
+- Se integró una prensa activa durante dos de cada cuatro pulsos.
+- Se integró una zona por dimensión que reduce la gravedad al 38 %.
+- Se integró un bloque agrietado que requiere Rift Pulse.
+- Se agregaron tres cargas iniciales, recuperación por ciclo y selección
+  contextual de objetivo.
+- Se agregó un botón táctil central y controles de teclado `E`/`X`.
+- Se actualizaron HUD, portada, captura y script de exportación.
+- La aplicación avanzó a `0.2.0` (`versionCode` 3).
+
+### Archivos creados
+
+- `scripts/obstacles/obstacle_catalog.gd`
+- `scripts/obstacles/obstacle_runtime.gd`
+- `tests/obstacle_system_test.gd`
+- `docs/OBSTACULOS.md`
+
+### Archivos modificados
+
+- `scripts/game.gd`
+- `tests/smoke_test.gd`
+- `tests/capture_preview.gd`
+- `tools/export_android.ps1`
+- `project.godot`
+- `export_presets.cfg`
+- `README.md`
+- `docs/ESTADO_ACTUAL.md`
+- `docs/DECISIONES.md`
+- `docs/BITACORA.md`
+
+### Decisiones técnicas
+
+- Se eligió composición de diccionarios con un evaluador común para conservar la
+  arquitectura procedural actual sin crear 12 jerarquías de nodos prematuras.
+- Las nueve piezas restantes quedan catalogadas, no activas, hasta validar los
+  tres prototipos.
+- Rift Pulse no consume cargas cuando no encuentra un objetivo compatible.
+
+### Comandos relevantes
+
+```powershell
+godot_console --headless --path . --script res://tests/obstacle_system_test.gd
+godot_console --headless --path . --script res://tests/smoke_test.gd
+godot_console --path . --script res://tests/capture_preview.gd
+```
+
+### Pruebas y resultados
+
+- Catálogo con 12 IDs y seis grupos por pieza: aprobado.
+- Instancias independientes y combinación anidada: aprobado.
+- Ciclo activo/retraído de la prensa: aprobado.
+- Gravedad ligera solo en la dimensión correspondiente: aprobado.
+- Poder incorrecto rechazado y Rift Pulse aceptado: aprobado.
+- Consumo de carga y destrucción dentro de la partida: aprobado.
+- Regresiones de salto, colisiones y victoria: aprobado.
+- Captura 1280×720 de los tres prototipos: aprobada.
+- Captura del efecto visual Rift Pulse: aprobada.
+
+### Errores encontrados
+
+- La prueba antigua agregaba manualmente un diccionario sin el nuevo contrato y
+  generaba errores de propiedades ausentes aunque terminara con código cero.
+- Un parche inicial no coincidió por la representación de caracteres UTF-8 en la
+  salida de PowerShell.
+
+### Soluciones aplicadas
+
+- La prueba ahora crea obstáculos mediante el mismo catálogo que usa el juego.
+- Los cambios se aplicaron con contexto UTF-8 exacto y se repitió la validación.
+
+### Problemas pendientes
+
+- Generar y validar el APK `0.2.0`.
+- Probar comprensión, controles y balance de los prototipos en Android.
+- La progresión persistente de poderes y las etapas siguen sin diseñarse.
+- La licencia del repositorio continúa pendiente.
+
+### Riesgos o deuda técnica
+
+- Las nueve piezas catalogadas todavía no tienen presentación ni balance
+  jugable.
+- El sistema usa diccionarios; si el catálogo crece mucho, podría migrarse a
+  Resources tipados.
+- La firma debug sigue sin ser apta para Google Play.
+
+### Commit asociado
+
+`feat: add modular obstacle prototypes`
+
+### Próximo paso recomendado
+
+Crear el commit fuente de `0.2.0`, exportar el APK desde ese commit y repetir
+firma, alineación, metadatos, arquitectura y checksum.

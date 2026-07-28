@@ -9,7 +9,7 @@ entre las dimensiones cyan y magenta al compás de 120 BPM.
 
 - Motor: Godot 4.7.1.
 - Plataforma principal: Android en orientación horizontal.
-- Versión del MVP: `0.1.1`.
+- Versión del MVP: `0.2.0`.
 - Renderizador: GL Compatibility.
 - APK más reciente: `release/RiftBeat-latest.apk`.
 - Pruebas automatizadas: `tests/smoke_test.gd`.
@@ -33,18 +33,36 @@ reescriben.
 ## Controles
 
 - Mitad izquierda de la pantalla: cambiar de dimensión.
+- Botón central: usar **Rift Pulse** sobre un bloque agrietado cercano.
 - Mitad derecha de la pantalla: saltar con el **Rift Roll**, un giro de cinco
   cuartos con dirección vinculada a la dimensión, estela y golpe de aterrizaje.
-- Teclado para desarrollo: `Tab` cambia, `Espacio` salta, `P` pausa y `R`
-  reinicia.
+- Teclado para desarrollo: `Tab` cambia, `E` o `X` usa Rift Pulse, `Espacio`
+  salta, `P` pausa y `R` reinicia.
 
 En Android el juego se bloquea en horizontal automática: funciona en las dos
 posiciones apaisadas del teléfono.
+
+## Sistema modular de obstáculos
+
+El catálogo registra 12 piezas básicas. Cada instancia combina seis grupos de
+propiedades: dimensión, movimiento, gravedad, destrucción, ritmo y reacción.
+La primera integración jugable incluye:
+
+- prensa rítmica que se extiende y retrae por compases;
+- zona de gravedad ligera que alarga el salto;
+- bloque agrietado destructible con Rift Pulse.
+
+Las otras nueve piezas están catalogadas para futuras combinaciones, pero no se
+introducirán en etapas hasta validar estos tres prototipos.
+
+El contrato, catálogo y reglas de introducción se mantienen en
+[`docs/OBSTACULOS.md`](docs/OBSTACULOS.md).
 
 ## Ejecutar las pruebas
 
 ```powershell
 godot_console --headless --path . --script res://tests/smoke_test.gd
+godot_console --headless --path . --script res://tests/obstacle_system_test.gd
 ```
 
 ## Generar el APK

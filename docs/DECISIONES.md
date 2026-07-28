@@ -142,3 +142,26 @@ nuevo ADR.
   táctil en un dispositivo físico.
 - Reversibilidad: alta; cantidad de giro, velocidad y efectos pueden calibrarse
   sin cambiar el control ni el sistema de obstáculos.
+
+## ADR-008 - Obstáculos modulares antes de crear etapas
+
+- Fecha: 2026-07-27.
+- Estado: aceptada.
+- Problema: agregar obstáculos como casos aislados haría difícil combinar
+  mecánicas, mantener pruebas y escalar el catálogo de niveles.
+- Alternativas consideradas:
+  - Programar cada obstáculo directamente en el bucle principal.
+  - Crear una escena o clase completamente distinta para cada variante.
+  - Separar un catálogo de datos y un evaluador común de propiedades.
+- Decisión: cada pieza declara dimensión, movimiento, gravedad, destrucción,
+  ritmo y reacción. Un catálogo registra 12 piezas básicas y un evaluador común
+  procesa sus combinaciones. Solo prensa rítmica, gravedad ligera y bloque
+  agrietado con Rift Pulse entran inicialmente en la partida.
+- Motivo: doce bases combinables permiten generar variantes sin duplicar lógica
+  y, al limitar la primera integración a tres prototipos, mantienen legible la
+  prueba de experiencia.
+- Consecuencias: toda pieza nueva debe cumplir el contrato o justificar mediante
+  otro ADR por qué necesita ampliarlo; no se crearán más etapas hasta probar la
+  versión `0.2.0` en Android.
+- Reversibilidad: media; los datos y el evaluador pueden migrar a Resources o
+  escenas especializadas conservando el contrato.
